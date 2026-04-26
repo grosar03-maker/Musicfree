@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MusicFree</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Circular:wght@400;500;600;700&display=swap');
+    
+    * { font-family: 'Circular Std', -apple-system, BlinkMacSystemFont, sans-serif; box-sizing: border-box; }
+    
+    body {
+      background: #000;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    
+    .spotify-bg {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background: linear-gradient(180deg, #1a1a1a 0%, #121212 100%);
+      overflow: hidden;
+    }
+    
+    .green-glow {
+      position: absolute;
+      width: 150%;
+      height: 150%;
+      top: -25%;
+      left: -25%;
+      background: radial-gradient(circle at 50% 50%, rgba(29, 185, 84, 0.15) 0%, transparent 50%);
+      animation: green-pulse 8s ease-in-out infinite;
+    }
+    
+    .green-glow-2 {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at 20% 80%, rgba(29, 185, 84, 0.08) 0%, transparent 40%);
+      animation: green-move 15s ease-in-out infinite;
+    }
+    
+    @keyframes green-pulse {
+      0%, 100% { transform: scale(1); opacity: 0.5; }
+      50% { transform: scale(1.2); opacity: 0.8; }
+    }
+    
+    @keyframes green-move {
+      0%, 100% { transform: translate(0, 0); }
+      33% { transform: translate(30px, -30px); }
+      66% { transform: translate(-20px, 20px); }
+    }
+    
+    .spotify-green { background-color: #1DB954; }
+    .spotify-green-hover:hover { background-color: #1ed760; }
+    .spotify-text { color: #1DB954; }
+    .spotify-green-border { border-color: #1DB954; }
+    
+    .card {
+      background: #181818;
+      border-radius: 8px;
+      padding: 16px;
+      transition: background-color 0.3s ease;
+    }
+    .card:hover {
+      background: #282828;
+    }
+    
+    .card-img {
+      border-radius: 4px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+      aspect-ratio: 1;
+      object-fit: cover;
+      width: 100%;
+    }
+    
+    .play-hover {
+      background: #1DB954;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+      transition: all 0.3s ease;
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    .card:hover .play-hover {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    
+    .input-spotify {
+      background: #fff;
+      border: none;
+      border-radius: 500px;
+      padding: 12px 24px;
+      font-size: 14px;
+      color: #000;
+    }
+    .input-spotify::placeholder { color: #757575; }
+    .input-spotify:focus { outline: 2px solid #1DB954; outline-offset: 2px; }
+    
+    .btn-spotify {
+      background: #1DB954;
+      color: #000;
+      font-weight: 700;
+      border-radius: 500px;
+      padding: 12px 32px;
+      transition: transform 0.1s, background-color 0.1s;
+    }
+    .btn-spotify:hover { background-color: #1ed760; transform: scale(1.04); }
+    .btn-spotify:active { transform: scale(0.98); }
+    
+    .sidebar-gradient {
+      background: linear-gradient(180deg, #2c2c2c 0%, #121212 100%);
+    }
+    
+    .nav-item {
+      color: #b3b3b3;
+      padding: 10px 16px;
+      border-radius: 4px;
+      transition: color 0.3s;
+    }
+    .nav-item:hover { color: #fff; }
+    .nav-item.active { color: #fff; background: rgba(255,255,255,0.1); }
+    
+    .progress {
+      height: 4px;
+      background: #4d4d4d;
+      border-radius: 2px;
+      overflow: visible;
+      position: relative;
+    }
+    .progress-fill {
+      background: #1DB954;
+      border-radius: 2px;
+      transition: width 0.1s linear;
+      height: 100%;
+    }
+    .progress::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      width: var(--progress, 0%);
+      background: #fff;
+      border-radius: 2px;
+      transition: width 0.1s linear;
+    }
+    .progress:hover::before {
+      background: #1ed760;
+    }
+    .progress-fill { display: none; }
+    .progress:hover .progress-fill { background: #1ed760; }
+    
+    .spotify-card {
+      background: #242424;
+      border-radius: 8px;
+      padding: 16px;
+      transition: background-color 0.3s ease;
+    }
+    .spotify-card:hover {
+      background: #2e2e2e;
+    }
+    .spotify-card:hover .card-play {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    
+    .card-play {
+      position: absolute;
+      bottom: 16px;
+      right: 16px;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: #1DB954;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: all 0.3s ease;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    }
+    .card-play:hover { transform: scale(1.06); }
+    .card-play:active { transform: scale(0.94); }
+  </style>
+</head>
+<body class="text-white min-h-screen flex">
+  
+  <aside class="w-56 sidebar-gradient fixed inset-y-0 left-0 flex-col hidden md:flex z-20">
+    <div class="p-6 flex flex-col gap-5">
+      <div class="flex items-center gap-3">
+        <svg class="w-8 h-8" fill="#fff" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>
+        <span class="font-bold text-lg">MusicFree</span>
+      </div>
+      
+      <nav class="flex flex-col gap-1">
+        <a href="#" class="nav-item flex items-center gap-4 font-medium active">
+          <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 14.5c-2.49 0-4.5-2.01-4.5-4.5S9.51 7.5 12 7.5s4.5 2.01 4.5 4.5-2.01 4.5-4.5 4.5zm0-5.5c-.55 0-1 .45-1 1s.45 1 1 1 1-.45 1-1-.45-1-1-1z"/></svg>
+          Inicio
+        </a>
+        <a href="#" class="nav-item flex items-center gap-4 font-medium">
+          <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>
+          Buscar
+        </a>
+      </nav>
+    </div>
+    
+    <div class="flex-1 p-4 overflow-y-auto border-t border-white/10">
+      <h3 class="text-xs font-bold text-white/50 uppercase tracking-wider px-4 mb-4">Biblioteca</h3>
+      <div class="text-sm text-white/60 px-4 py-2">Tus descargas</div>
+      <div class="text-sm text-white/60 px-4 py-2">Escuchado recently</div>
+    </div>
+  </aside>
+
+  <main class="flex-1 md:ml-56 relative">
+    <div class="spotify-bg">
+      <div class="green-glow"></div>
+      <div class="green-glow-2"></div>
+    </div>
+    
+    <div class="relative z-10 p-4 md:p-8">
+      <header class="flex items-center justify-between mb-6">
+        <div class="flex items-center gap-4">
+          <div class="w-8 h-8 bg-black/50 rounded-full flex items-center justify-center cursor-pointer">
+            <svg class="w-4 h-4" fill="#fff" viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+          </div>
+          <div class="w-8 h-8 bg-black/50 rounded-full flex items-center justify-center cursor-pointer">
+            <svg class="w-4 h-4" fill="#fff" viewBox="0 0 24 24"><path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/></svg>
+          </div>
+        </div>
+        
+        <div class="flex items-center gap-3">
+          <button class="w-8 h-8 bg-black/50 rounded-full flex items-center justify-center text-sm font-bold">?</button>
+          <div class="w-8 h-8 bg-violet-500 rounded-full flex items-center justify-center font-bold text-xs">M</div>
+        </div>
+      </header>
+      
+      <div class="mb-8">
+        <h1 class="text-3xl font-bold mb-4">¿Qué quieres escuchar?</h1>
+        
+        <form id="search-form" class="flex gap-3">
+          <input type="text" id="query" placeholder="Buscar una canción, artista o link..." required
+            class="input-spotify flex-grow max-w-md">
+          <button type="submit" class="btn-spotify">
+            Buscar
+          </button>
+        </form>
+      </div>
+      
+      <div class="mb-4">
+        <h2 class="text-xl font-bold">Resultados</h2>
+      </div>
+      
+      <div id="results" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+      </div>
+
+    </div>
+  </main>
+  
+  <div class="fixed bottom-0 left-0 right-0 bg-black/90 border-t border-white/10 p-3 z-30 hidden md:flex items-center gap-4">
+    <div class="flex items-center gap-3 w-1/4">
+      <img src="" class="w-14 h-14 rounded card-img hidden" id="current-thumb">
+      <div class="overflow-hidden">
+        <div class="text-sm font-medium truncate" id="current-title"></div>
+        <div class="text-xs text-white/50 truncate" id="current-artist"></div>
+      </div>
+    </div>
+    
+    <div class="flex flex-col flex-1 items-center gap-2">
+      <div class="flex items-center gap-4">
+        <button class="text-white/70 hover:text-white"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg></button>
+        <button class="w-8 h-8 bg-white rounded-full flex items-center justify-center" id="main-play">
+          <svg class="w-4 h-4 text-black" fill="currentColor" viewBox="0 0 24 24" id="play-icon"><polygon points="5,3 19,12 5,21"/></svg>
+          <svg class="w-4 h-4 text-black hidden" fill="currentColor" viewBox="0 0 24 24" id="pause-icon"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+        </button>
+        <button class="text-white/70 hover:text-white"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg></button>
+      </div>
+      <div class="w-full max-w-md flex items-center gap-2">
+        <span class="text-xs text-white/50 w-8" id="elapsed-time">0:00</span>
+        <div class="progress flex-grow cursor-pointer" id="main-progress" style="--progress: 0%"></div>
+        <span class="text-xs text-white/50 w-8" id="main-time">0:00</span>
+      </div>
+    </div>
+    
+    <div class="w-1/4 flex justify-end items-center gap-2">
+      <button class="text-white/70 hover:text-white" id="vol-btn">
+        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+      </button>
+      <div class="w-24 h-1 bg-white/20 rounded-full cursor-pointer" id="vol-container">
+        <div class="h-1 bg-white rounded-full" id="vol-bar" style="width: 50%"></div>
+      </div>
+    </div>
+  </div>
+
+  <audio id="main-audio" class="hidden"></audio>
+
+  <script>
+    const fmt = s => s ? Math.floor(s/60) + ':' + (s%60).toString().padStart(2,'0') : '0:00';
+    let mainAudio = document.getElementById('main-audio');
+    let currentTitle = '';
+    let currentThumb = '';
+    let totalDuration = 0;
+    let isPlaying = false;
+    
+    function updatePlayerState() {
+      const pct = (mainAudio.currentTime / mainAudio.duration * 100);
+      document.getElementById('main-progress').style.setProperty('--progress', pct + '%');
+      document.getElementById('elapsed-time').textContent = fmt(Math.floor(mainAudio.currentTime));
+      document.getElementById('main-time').textContent = fmt(Math.floor(mainAudio.duration || 0));
+    }
+    
+    document.getElementById('search-form').addEventListener('submit', async e => {
+      e.preventDefault();
+      const q = document.getElementById('query').value;
+      const r = document.getElementById('results');
+      r.innerHTML = '<div class="col-span-full flex flex-col items-center justify-center py-16"><div class="w-8 h-8 border-2 border-green-500 border-t-transparent rounded-full animate-spin mb-4"></div><p class="text-white/50">Buscando...</p></div>';
+
+      try {
+        const res = await fetch(`/api/search?query=${encodeURIComponent(q)}`);
+        const data = await res.json();
+
+        if (!data.length) {
+          r.innerHTML = '<div class="col-span-full text-center py-12 text-white/35">No se encontraron resultados</div>';
+          return;
+        }
+
+        r.innerHTML = data.map((v, i) => `
+          <div class="spotify-card relative group cursor-pointer" data-idx="${i}">
+            <div class="relative">
+              <img src="${v.thumbnail}" alt="${v.title}" class="card-img mb-4">
+              <button class="card-play" onclick="playTrack('${v.audio_url}', '${v.title.replace(/'/g, "\\'")}', '${v.thumbnail}')">
+                <svg class="w-5 h-5 text-black ml-0.5" fill="currentColor" viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg>
+              </button>
+            </div>
+            <h3 class="text-sm font-medium mb-1 truncate">${v.title}</h3>
+            <p class="text-xs text-white/50 line-clamp-2 mb-3">Duración: ${fmt(v.duration)}</p>
+            
+            <div class="flex gap-2">
+              <a href="/download/${v.id}" class="flex-1 bg-green-500 hover:bg-green-400 text-black py-2 rounded-full font-bold text-xs text-center">FLAC</a>
+              <a href="/download-mp3/${v.id}" class="flex-1 bg-white/20 hover:bg-white/30 py-2 rounded-full font-bold text-xs text-center">MP3</a>
+            </div>
+          </div>
+        `).join('');
+
+        if (data[0]) {
+          mainAudio.src = data[0].audio_url;
+        }
+
+      } catch (err) {
+        r.innerHTML = '<div class="col-span-full text-center py-12 text-red-400">Error en la búsqueda</div>';
+      }
+    });
+    
+    function playTrack(url, title, thumb) {
+      mainAudio.src = url;
+      currentTitle = title;
+      currentThumb = thumb;
+      document.getElementById('current-title').textContent = title;
+      document.getElementById('current-thumb').src = thumb;
+      document.getElementById('current-thumb').classList.remove('hidden');
+      togglePlay();
+    }
+    
+    function togglePlay() {
+      if (mainAudio.paused) {
+        mainAudio.play();
+        document.getElementById('play-icon').classList.add('hidden');
+        document.getElementById('pause-icon').classList.remove('hidden');
+      } else {
+        mainAudio.pause();
+        document.getElementById('play-icon').classList.remove('hidden');
+        document.getElementById('pause-icon').classList.add('hidden');
+      }
+    }
+    
+    document.getElementById('main-play').addEventListener('click', togglePlay);
+    
+    mainAudio.addEventListener('loadedmetadata', () => {
+      totalDuration = mainAudio.duration;
+      document.getElementById('main-progress').style.setProperty('--progress', '0%');
+      document.getElementById('main-time').textContent = fmt(Math.floor(totalDuration));
+    });
+    
+    mainAudio.addEventListener('timeupdate', updatePlayerState);
+    
+    mainAudio.volume = 0.5;
+    
+    document.getElementById('main-progress').addEventListener('click', e => {
+      const pct = e.offsetX / document.getElementById('main-progress').offsetWidth;
+      mainAudio.currentTime = pct * mainAudio.duration;
+    });
+    
+    document.getElementById('vol-container').addEventListener('click', e => {
+      const pct = e.offsetX / document.getElementById('vol-container').offsetWidth;
+      mainAudio.volume = Math.max(0, Math.min(1, pct));
+      document.getElementById('vol-bar').style.width = (pct * 100) + '%';
+    });
+    
+    document.getElementById('vol-btn').addEventListener('click', () => {
+      if (mainAudio.muted) {
+        mainAudio.muted = false;
+        mainAudio.volume = 0.5;
+        document.getElementById('vol-bar').style.width = '50%';
+      } else {
+        mainAudio.muted = true;
+        document.getElementById('vol-bar').style.width = '0%';
+      }
+    });
+  </script>
+</body>
+</html>
